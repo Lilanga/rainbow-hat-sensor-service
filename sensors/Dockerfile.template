@@ -1,0 +1,13 @@
+FROM balenalib/%%BALENA_ARCH%%-alpine-golang:latest-build as builder
+
+RUN apk add git
+WORKDIR /build
+COPY . .
+RUN go mod download
+RUN go build -o rainbow-hat-sensor-service .
+
+FROM balenalib/%%BALENA_ARCH%%-alpine-golang:latest-run
+COPY --from=builder /build/rainbow-hat-sensor-service .
+
+# command to run on container start
+CMD [ "./rainbow-hat-sensor-service" ]

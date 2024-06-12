@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .panel {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: auto auto;
+            grid-gap: 10px;
+            margin-top: 20px;
+        }
+
+        .grid-item {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .timestamp {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.8em;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="panel">
+            <h1>Weather readings</h1>
+            <div class="grid-container">
+                <div class="grid-item">
+                    <h2>Sensor</h2>
+                    <p id="sensor-id">-</p>
+                </div>
+                <div class="grid-item">
+                    <h2>Humidity</h2>
+                    <p id="humidity">-</p>
+                </div>
+                <div class="grid-item">
+                    <h2>Temperature</h2>
+                    <p id="temperature">-</p>
+                </div>
+                <div class="grid-item">
+                    <h2>Pressure</h2>
+                    <p id="pressure">-</p>
+                </div>
+            </div>
+            <div class="timestamp">
+                Updated at <span id="timestamp">-</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchData() {
+            const response = await fetch('/data');
+            const data = await response.json();
+            document.getElementById('sensor-id').innerText = data.sensor_id;
+            document.getElementById('humidity').innerText = data.humidity;
+            document.getElementById('temperature').innerText = data.temperature;
+            document.getElementById('pressure').innerText = data.pressure;
+            const timestamp = new Date(data.timestamp);
+            document.getElementById('timestamp').innerText = timestamp.toLocaleString();
+        }
+
+        fetchData();
+        setInterval(fetchData, 30000); // Refresh data every 30 seconds
+    </script>
+</body>
+
+</html>
