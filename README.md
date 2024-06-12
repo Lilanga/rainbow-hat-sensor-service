@@ -8,6 +8,7 @@ This repository contains a Go application for reading sensor data from the Rainb
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Running the Application](#running-the-application)
+- [Accessing the Web Server via Balena Public URL](#accessing-the-web-server-via-balena-public-url)
 - [Endpoints](#endpoints)
 - [Shutdown](#shutdown)
 - [License](#license)
@@ -107,6 +108,24 @@ This repository contains a Go application for reading sensor data from the Rainb
     docker build -t rainbow-hat-sensor-service .
     docker run --env-file .env -p 8080:8080 rainbow-hat-sensor-service
     ```
+
+## Accessing the Web Server via Balena Public URL
+
+1. **Enable Public URL:**
+
+    Go to the Balena dashboard, select your application, and enable the Public Device URL for your device. This will provide you with a URL through which you can access your web server.
+
+2. **Configure Environment Variables:**
+
+    Set the `PORT` environment variable to `80` in your Balena application configuration. This ensures that the web server listens on the correct port for the Balena public URL.
+
+    ```env
+    PORT=:80
+    ```
+
+3. **Access the Web Server:**
+
+    Once the application is running, you can access the web server using the public URL provided by Balena.
 
 ## Endpoints
 
