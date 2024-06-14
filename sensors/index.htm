@@ -85,9 +85,9 @@
             const response = await fetch('/data');
             const data = await response.json();
             document.getElementById('sensor-id').innerText = data.sensor_id;
-            document.getElementById('humidity').innerText = data.humidity;
-            document.getElementById('temperature').innerText = data.temperature;
-            document.getElementById('pressure').innerText = data.pressure;
+            document.getElementById('humidity').innerText = data.humidity + '%';
+            document.getElementById('temperature').innerText = data.temperature + '°C';
+            document.getElementById('pressure').innerText = data.pressure + 'hPa';
             const timestamp = new Date(data.timestamp);
             document.getElementById('timestamp').innerText = timestamp.toLocaleString();
         }

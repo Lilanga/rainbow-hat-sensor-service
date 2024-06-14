@@ -12,12 +12,8 @@ import (
 	"time"
 
 	mqttLib "github.com/Lilanga/sensor-data-processing-service/pkg/mqtt"
+	"github.com/MichaelS11/go-dht"
 	"github.com/joho/godotenv"
-	"periph.io/x/periph/conn/physic"
-	"periph.io/x/periph/devices/apa102"
-	"periph.io/x/periph/devices/bmxx80"
-	"periph.io/x/periph/experimental/devices/rainbowhat"
-	"periph.io/x/periph/host"
 
 	_ "embed"
 )
@@ -42,15 +38,11 @@ func main() {
 		log.Fatalf("Failed to initialize hardware: %v", err)
 	}
 
-	hat, err := rainbowhat.NewRainbowHat(&apa102.DefaultOpts)
+	dhtSensor, err := dht.NewDHT("GPIO2", dht.Celsius, "DHT22")
 	if err != nil {
-		log.Fatalf("Failed to initialize Rainbow HAT: %v", err)
+		fmt.Println("NewDHT error:", err)
+		return
 	}
-	defer func() {
-		if err := hat.Halt(); err != nil {
-			log.Printf("Error halting Rainbow HAT: %v", err)
-		}
-	}()
 
 	interval, err := strconv.Atoi(os.Getenv("REFRESH_INTERVAL"))
 
@@ -58,14 +50,13 @@ func main() {
 		interval = 30
 	}
 
-	sensor := hat.GetBmp280()
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
 	defer ticker.Stop()
 
 	client, topic, sensorID := setupMQTT()
 	// defer client.Disconnect(250)
 
-	go publishSensorData(sensor, ticker, client, topic, sensorID)
+	go publishSensorData(dhtSensor, ticker, client, topic, sensorID)
 
 	// Serve HTTP
 	http.HandleFunc("/", webpageHandler)
@@ -78,7 +69,7 @@ func main() {
 }
 
 func initializeHardware() error {
-	if _, err := host.Init(); err != nil {
+	if err := dht.HostInit(); err != nil {
 		return fmt.Errorf("host initialization failed: %w", err)
 	}
 	return nil
@@ -97,18 +88,18 @@ func setupMQTT() (*mqttLib.MqttClient, string, string) {
 	return client, topic, sensorID
 }
 
-func publishSensorData(sensor *bmxx80.Dev, ticker *time.Ticker, client *mqttLib.MqttClient, topic, sensorID string) {
+func publishSensorData(sensor *dht.DHT, ticker *time.Ticker, client *mqttLib.MqttClient, topic, sensorID string) {
 	for range ticker.C {
-		var envi physic.Env
-		if err := sensor.Sense(&envi); err != nil {
-			log.Printf("Error sensing environment data: %v", err)
+		humidity, temperature, err := sensor.ReadRetry(11)
+		if err != nil {
+			fmt.Println("Read error:", err)
 			continue
 		}
 
 		currentData = SensorData{
-			Humidity:    envi.Humidity.String(),
-			Temperature: envi.Temperature.String(),
-			Pressure:    envi.Pressure.String(),
+			Humidity:    fmt.Sprintf("%v", humidity),
+			Temperature: fmt.Sprintf("%v", temperature),
+			Pressure:    "0",
 			SensorID:    sensorID,
 			Timestamp:   time.Now().Format(time.RFC3339),
 		}
